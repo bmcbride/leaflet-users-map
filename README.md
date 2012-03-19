@@ -1,6 +1,6 @@
 ### About
 
-An interactive map showing users of the [Leaflet](http://leaflet.cloudmade.com/) mapping library. Live map at [http://leafletusers.bryanmcbride.com](http://leafletusers.bryanmcbride.com/).
+An interactive map showing users of the [Leaflet](http://leaflet.cloudmade.com/) mapping library. Live map at [http://users.leafletjs.com](http://users.leafletjs.com/).
 
 ### Dependencies
 
