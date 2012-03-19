@@ -296,13 +296,13 @@ function onMapClick(e) {
 	newUser.addLayer(marker);
 	var form = 	'<form id="inputform" enctype="multipart/form-data">'+
 				'<div><span class="label">Name: * </span><span class="sublabel">marker title</span></div>'+
-				'<input type="text" id="name" name="name" /><br>'+
+				'<input type="text" class="text ui-widget-content ui-corner-all" id="name" name="name" /><br>'+
 				'<div><span class="label">Email: * </span><span class="sublabel">not shared on map</span></div>'+
-				'<input type="text" id="email" name="email" /><br>'+
+				'<input type="text" class="text ui-widget-content ui-corner-all" id="email" name="email" /><br>'+
 				'<div><span class="label">City: </span><span class="sublabel">optional</span></div>'+
-				'<input type="text" id="city" name="city" /><br>'+
+				'<input type="text" class="text ui-widget-content ui-corner-all" id="city" name="city" /><br>'+
 				'<div><span class="label">Website: </span><span class="sublabel">optional</span></div>'+
-				'<input type="text" id="website" name="website" value="http://" /><br>'+
+				'<input type="text" class="text ui-widget-content ui-corner-all" id="website" name="website" value="http://" /><br>'+
 				'<input style="display: none;" type="text" id="lat" name="lat" value="'+e.latlng.lat.toFixed(6)+'" />'+
 				'<input style="display: none;" type="text" id="lng" name="lng" value="'+e.latlng.lng.toFixed(6)+'" />'+
 				'<div id="buttonbox" style="padding: 10px 10px 0;">'+
