@@ -1,0 +1,320 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<meta name="description" content="Map showing users of the Leaflet mapping library" />
+<meta name="keywords" content="leaflet, users, map, javascript, cloudmade" />
+<meta name="author" content="Bryan R. McBride, GISP - http://bryanmcbride.com" />
+<link type="text/css" rel="stylesheet" href="http://fonts.googleapis.com/css?family=Norican">
+<link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.18/themes/smoothness/jquery-ui.css" type="text/css" media="all" />
+<link rel="stylesheet" href="lib/Leaflet/leaflet.css" />
+<!--[if lte IE 8]><link rel="stylesheet" href="lib/Leaflet/leaflet.ie.css" /><![endif]-->
+<link rel="stylesheet" type="text/css" href="css/style.css" media="screen" />
+<script type="text/javascript" src="lib/Leaflet/leaflet.js"></script>
+<script type="text/javascript" src="http://code.jquery.com/jquery-1.7.1.min.js"></script>
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.18/jquery-ui.min.js"></script>
+<title>Leaflet Users Map</title>
+<script type="text/javascript">
+WebFontConfig = {
+  google: {
+      families: ['Norican::latin']
+  }
+};
+(function () {
+  var wf = document.createElement('script');
+  wf.src = ('https:' == document.location.protocol ? 'https' : 'http') + '://ajax.googleapis.com/ajax/libs/webfont/1/webfont.js';
+  wf.type = 'text/javascript';
+  wf.async = 'true';
+  var s = document.getElementsByTagName('script')[0];
+  s.parentNode.insertBefore(wf, s);
+})();
+</script>
+</head>
+<body>
+
+<a href="javascript: alert('Coming soon!');"><img style="position: absolute; top: 0; right: 0; border: 0; z-index: 1000;" src="img/forkme.png" alt="Fork me on GitHub"></a>
+
+<div id="container">
+
+	<div id="header">
+		<h1>Leaflet Users Map</h1>
+		<span class="buttoncontainer">
+			<span style="padding:0 10px;"><a href="#" onclick="addMe(); return false;" class="addbutton">Add me to the map</a></span>
+			<span style="padding:0 10px;"><a href="#" onclick="removeMe(); return false;" class="removebutton">Remove me</a></span>
+		</span>
+	</div>
+
+	<div id="map" class="map">
+	</div>
+
+	<div class="geolocation">
+		<a href="#" onclick="geoLocate(); return false;" title="My Location"></a>
+	</div>
+
+	<div id="footer">
+		&copy;2012&nbsp;<a style="color: #ffffff;" href="http://bryanmcbride.com" target="_blank">bryanmcbride.com</a>
+	</div>
+
+	<div id="insertsuccess" title="Success!">
+		Thanks for joining the Leaflet Users Map!<br /><br />
+		You should receive an email shortly with instructions on how to edit your information.
+	</div>
+
+	<div id="removesuccess" title="You have been removed">
+		You have been removed from the Leaflet User Map<br /><br />
+		Thanks for your interest and feel free to add youself back at any time.
+	</div>
+
+	<div id="addme" title="Add me to the map">
+		Click on the Go! button below to get started.<br /><br />
+		Navigate to your desired location and click on the map to drop a marker and submit your information.
+	</div>
+
+	<div id="removeme" title="Remove me">
+		<form>
+		<table style="width: 100px; border-collapse: collapse;" border="0" cellpadding="2" cellspacing="2">
+			<tbody>
+				<tr>
+					<td>Email</td>
+					<td><input type="text" class="alignright text ui-widget-content ui-corner-all" name="email_remove" id="email_remove" value="" /></td>
+				</tr>
+				<tr>
+					<td>Token</td>
+					<td><input type="password" class="alignright text ui-widget-content ui-corner-all" name="token_remove" id="token_remove" value="" /></td>
+				</tr>
+			</tbody>
+		</table>
+		<p><input class="alignright" type="button" value="Submit" onclick="removeUser();" /></p>
+		</form>
+	</div>
+</div>
+
+<script>
+var map, newUser, users, mapquest, firstLoad;
+
+firstLoad = true;
+
+users = new L.FeatureGroup();
+newUser = new L.LayerGroup();
+
+mapquest = new L.TileLayer("http://{s}.mqcdn.com/tiles/1.0.0/osm/{z}/{x}/{y}.png", {
+	maxZoom: 18,
+	subdomains: ["otile1", "otile2", "otile3", "otile4"],
+	attribution: 'Tiles Courtesy of <a href="http://www.mapquest.com/" target="_blank">MapQuest</a>. Map data (c) <a href="http://www.openstreetmap.org/" target="_blank">OpenStreetMap</a> contributors, CC-BY-SA.'
+});
+
+map = new L.Map('map', {
+	center: new L.LatLng(39.90973623453719, -93.69140625),
+	zoom: 3,
+	layers: [mapquest, users, newUser]
+});
+
+map.addControl(new L.Control.Scale());
+
+//map.locate({setView: true, maxZoom: 3});
+
+$(function() {
+	$.ajaxSetup({cache:false});
+	$(".addbutton").button({
+		icons: {
+                primary: "ui-icon-circle-plus"
+            }
+	});
+	$(".removebutton").button({
+		icons: {
+                primary: "ui-icon-circle-minus"
+            }
+	});
+	$("#insertsuccess").dialog({
+		autoOpen: false,
+		closeOnEscape: false,
+		modal: true,
+		width: 450,
+		buttons: {
+			'Ok': function() {
+				$(this).dialog("close");
+			}
+		},
+		close: function(event, ui) {
+			cancelRegistration();
+			users.clearLayers();
+			getUsers();
+		},
+	});
+	$("#removesuccess").dialog({
+		autoOpen: false,
+		closeOnEscape: false,
+		modal: true,
+		width: 450,
+		buttons: {
+			'Ok': function() {
+				$(this).dialog("close");
+			}
+		},
+		close: function(event, ui) {
+			users.clearLayers();
+			getUsers();
+		},
+	});
+	$("#removeme").dialog({
+		autoOpen: false,
+		modal: true,
+		width: 250
+	});
+	$("#addme").dialog({
+		autoOpen: false,
+		modal: true,
+		width: 375,
+		buttons: {
+			'Go!': function() {
+				$(this).dialog("close");
+				initRegistration();
+			}
+		}
+	});
+});
+
+$(document).keyup(function(e) {
+	if (e.keyCode == 27) {cancelRegistration();} // esc
+});
+
+function geoLocate() {
+	map.locate({setView: true, maxZoom: 17});
+}
+
+function addMe() {
+	$('#addme').dialog('open');
+}
+
+function removeMe() {
+	$('#removeme').dialog('open');
+}
+
+function initRegistration() {
+	map.addEventListener('click', onMapClick);
+	document.body.style.cursor = 'crosshair';
+	return false;
+}
+
+function cancelRegistration() {
+	newUser.clearLayers();
+	document.body.style.cursor = 'default';
+	map.removeEventListener('click', onMapClick);
+}
+
+function getUsers() {
+	$.getJSON("get_users.php", function (data) {
+		for (var i = 0; i < data.length; i++) {
+			var location = new L.LatLng(data[i].lat, data[i].lng);
+			var name = data[i].name;
+			var website = data[i].website;
+			if (data[i].website.length > 7) {
+				var title = "<div style='font-size: 18px; color: #0078A8;'><a href='"+ data[i].website +"' target='_blank'>"+ data[i].name + "</a></div>";
+			}
+			else {
+				var title = "<div style='font-size: 18px; color: #0078A8;'>"+ data[i].name +"</div>";
+			}
+			if (data[i].city.length > 0) {
+				var city = "<div style='font-size: 14px;'>"+ data[i].city +"</div>";
+			}
+			else {
+				var city = "";
+			}
+			var marker = new L.Marker(location);
+			marker.bindPopup("<div style='text-align: center; margin-left: auto; margin-right: auto;'>"+ title + city +"</div>", {maxWidth: '400'});
+			users.addLayer(marker);
+		}
+	}).complete(function() {
+		if (firstLoad == true) {
+			map.fitBounds(users.getBounds());
+			firstLoad = false;
+		};
+	});
+}
+
+function insertUser() {
+	var name = $("#name").val();
+	var email = $("#email").val();
+	var website = $("#website").val();
+	var city = $("#city").val();
+	var lat = $("#lat").val();
+	var lng = $("#lng").val();
+	if (name.length == 0) {
+		alert("Name is required!");
+		return false;
+	}
+	if (email.length == 0) {
+		alert("Email is required!");
+		return false;
+	}
+	var dataString = 'name='+ name + '&email=' + email + '&website=' + website + '&city=' + city + '&lat=' + lat + '&lng=' + lng;
+	$.ajax({
+	  type: "POST",
+	  url: "insert_user.php",
+	  data: dataString,
+	  success: function() {
+		$('#insertsuccess').dialog('open');
+	  }
+	});
+	return false;
+}
+
+function removeUser() {
+	var email = $("#email_remove").val();
+	var token = $("#token_remove").val();
+	if (email.length == 0) {
+		alert("Email is required!");
+		return false;
+	}
+	if (token.length == 0) {
+		alert("Token is required!");
+		return false;
+	}
+	var dataString = 'email='+ email + '&token=' + token;
+	$.ajax({
+	  type: "POST",
+	  url: "remove_user.php",
+	  data: dataString,
+	  success: function(data) {
+		//console.log(data);
+		if (data > 0) {
+			$('#removesuccess').dialog('open');
+			$('#removeme').dialog('close');
+		}
+		else {
+			alert("Incorrect email or token. Please try again.");
+		}
+	  }
+	});
+	return false;
+}
+
+function onMapClick(e) {
+	var markerLocation = new L.LatLng(e.latlng.lat, e.latlng.lng);
+	var marker = new L.Marker(markerLocation);
+	newUser.clearLayers();
+	newUser.addLayer(marker);
+	var form = 	'<form id="inputform" enctype="multipart/form-data">'+
+				'<div><span class="label">Name: * </span><span class="sublabel">marker title</span></div>'+
+				'<input type="text" id="name" name="name" /><br>'+
+				'<div><span class="label">Email: * </span><span class="sublabel">not shared on map</span></div>'+
+				'<input type="text" id="email" name="email" /><br>'+
+				'<div><span class="label">City: </span><span class="sublabel">optional</span></div>'+
+				'<input type="text" id="city" name="city" /><br>'+
+				'<div><span class="label">Website: </span><span class="sublabel">optional</span></div>'+
+				'<input type="text" id="website" name="website" value="http://" /><br>'+
+				'<input style="display: none;" type="text" id="lat" name="lat" value="'+e.latlng.lat.toFixed(6)+'" />'+
+				'<input style="display: none;" type="text" id="lng" name="lng" value="'+e.latlng.lng.toFixed(6)+'" />'+
+				'<div id="buttonbox" style="padding: 10px 10px 0;">'+
+				'<input class="alignleft" type="button" value="Cancel" onclick="cancelRegistration()" />'+
+				'<input class="alignright" type="button" value="Submit" onclick="insertUser()" />'+
+				'<div style="clear: both;"></div>';
+	marker.bindPopup(form).openPopup();
+}
+
+$(document).ready(function() {
+	getUsers();
+});
+</script>
+</body>
+</html>
