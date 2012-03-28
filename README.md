@@ -5,6 +5,5 @@ An interactive map showing users of the [Leaflet](http://leaflet.cloudmade.com/)
 ### Dependencies
 
 - [Leaflet](http://leaflet.cloudmade.com/)
-- [jQuery](http://jquery.com/)
-- [jQuery UI](http://jqueryui.com/)
+- [Twitter Bootstrap](http://twitter.github.com/bootstrap/)
 - [PHP with PDO_SQLITE enabled](http://php.net/manual/en/ref.pdo-sqlite.php)
