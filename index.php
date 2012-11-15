@@ -7,12 +7,14 @@
     <meta name="description" content="Map showing users of the Leaflet mapping library" />
     <meta name="keywords" content="leaflet, users, map, javascript, cloudmade" />
     <meta name="author" content="Bryan R. McBride, GISP - http://bryanmcbride.com" />
-    <link type="text/css" rel="stylesheet" href="http://fonts.googleapis.com/css?family=Norican">
-    <link rel="stylesheet" href="lib/Leaflet/leaflet.css" />
-    <!--[if lte IE 8]><link rel="stylesheet" href="lib/Leaflet/leaflet.ie.css" /><![endif]-->
 
     <!-- Le styles -->
-    <link href="lib/bootstrap/css/bootstrap.css" rel="stylesheet">
+    <link type="text/css" rel="stylesheet" href="http://fonts.googleapis.com/css?family=Norican">
+    <link type="text/css" rel="stylesheet" href="assets/bootstrap/css/bootstrap.css">
+    <link type="text/css" rel="stylesheet" href="assets/leaflet/leaflet.css" />
+    <!--[if lte IE 8]><link type="text/css" rel="stylesheet" href="assets/leaflet/leaflet.ie.css" /><![endif]-->
+    <link type="text/css" rel="stylesheet" href="assets/leaflet/plugins/leaflet.markercluster/MarkerCluster.css" />
+    <link type="text/css" rel="stylesheet" href="assets/leaflet/plugins/leaflet.markercluster/MarkerCluster.Default.css" />
     <style type="text/css">
       html, body {
         margin: 0;
@@ -27,10 +29,24 @@
         width:100%;
         height:100%;
       }
+      #loading {
+        position: absolute;
+        width: 220px;
+        height: 19px;
+        top: 50%;
+        left: 50%;
+        margin: -10px 0 0 -110px;
+        z-index: 20001;
+      }
+      #loading .loading-indicator {
+        height: auto;
+        margin: 0;
+      }
       .navbar .brand {
         font-size: 25px;
         font-family: 'Norican', serif;
         font-weight: bold;
+        color: white;
       }
       .navbar .nav > li > a {
         padding: 13px 10px 11px;
@@ -38,43 +54,15 @@
       .navbar .btn, .navbar .btn-group {
         margin-top: 8px;
       }
-      .leaflet-top .leaflet-control {
-        margin-top: 50px;
-      }
       .leaflet-popup-content-wrapper, .leaflet-popup-tip {
         background: #f7f7f7;
       }
-      .geolocation {
-        position: absolute;
-        left: 0;
-        top: 0;
-        margin-left: 10px;
-        margin-top: 55px;
-        padding: 5px;
-        background: rgba(0, 0, 0, 0.25);
-        border-radius: 7px;
-        -moz-border-radius: 7px;
-        -webkit-border-radius: 7px;
-        color: rgba(255, 255, 255, 1);
-        z-index: 100;
-      }
-      .geolocation a {
-        background-color: rgba(255, 255, 255, 0.75);
-        background-position: 50% 50%;
-        background-repeat: no-repeat;
+      .leaflet-control-geoloc {
         background-image: url(img/location.png);
-        display: block;
-        -moz-border-radius: 4px;
-        -webkit-border-radius: 4px;
-        border-radius: 4px;
-        width: 19px;
-        height: 19px;
-      }
-      .geolocation a:hover {
-        background-color: #fff;
+        -webkit-border-radius: 5px 5px 5px 5px;
+        border-radius: 5px 5px 5px 5px;
       }
     </style>
-    <link href="lib/bootstrap/css/bootstrap-responsive.css" rel="stylesheet">
 
     <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
     <!--[if lt IE 9]>
@@ -99,7 +87,7 @@
 
   <body>
 
-    <div class="navbar navbar-fixed-top">
+    <div class="navbar navbar-inverse navbar-fixed-top">
       <div class="navbar-inner">
         <div class="container">
           <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
@@ -107,13 +95,13 @@
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </a>
-          <a class="brand" href="#">Leaflet Users Map</a>
+          <a class="brand" href="#" onclick="return false;">Leaflet Users Map</a>
           <div class="nav-collapse">
             <ul class="nav">
-              <li><a data-toggle="modal" href="#aboutModal"><i class="icon-question-sign icon-white"></i> About The Map</a></li>
-              <li><a data-toggle="modal" href="#contactModal"><i class="icon-envelope icon-white"></i> Contact Me</a></li>
+              <li><a href="#" onclick="$('#aboutModal').modal('show'); return false;"><i class="icon-question-sign icon-white"></i> About The Map</a></li>
+              <li><a href="#" onclick="$('#contactModal').modal('show'); return false;"><i class="icon-envelope icon-white"></i> Contact Me</a></li>
               <li><a href="https://github.com/bmcbride/leaflet-users-map" target="_blank"><i class="icon-download icon-white"></i> GitHub Repo</a></li>
-              <li><a href="http://leaflet.cloudmade.com/" target="_blank"><i class="icon-leaf icon-white"></i> Leaflet</a></li>
+              <li><a href="http://leafletjs.com/" target="_blank"><i class="icon-leaf icon-white"></i> Leaflet</a></li>
             </ul>
             <form class="navbar-form pull-right">
                <span style="padding-right: 20px;"><a class='btn btn-primary btn-small' data-toggle="modal" href="#addmeModal"><i class="icon-plus-sign icon-white"></i> Add me to the map</a></span>
@@ -168,7 +156,7 @@
         <h3>Contact Me!</h3>
       </div>
       <div class="modal-body">
-        <p><strong>Email:</strong> <a href="mailto: bryan@bryanmcbride.com">bryan@bryanmcbride.com</a></p>
+        <p><strong>Email:</strong> mcbride(dot)bryan(at)gmail(dot)com</p>
         <p><strong>Twitter:</strong> <a href="https://twitter.com/#!/brymcbride">@brymcbride</a></p>
         <p><strong>Website</strong> <a href="http://bryanmcbride.com">bryanmcbride.com</a></p>
       </div>
@@ -227,30 +215,34 @@
     </div>
 
     <div id="map"></div>
-
-    <div class="geolocation">
-      <a href="#" onclick="geoLocate(); return false;" title="My Location"></a>
+    <div id="loading-mask" class="modal-backdrop" style="display:none;"></div>
+    <div id="loading" style="display:none;">
+        <div class="loading-indicator">
+            <img src="img/ajax-loader.gif">
+        </div>
     </div>
 
     <!-- Le javascript
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
-    <script type="text/javascript" src="lib/Leaflet/leaflet.js"></script>
-    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
-    <script src="lib/bootstrap/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script type="text/javascript" src="assets/bootstrap/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="assets/leaflet/leaflet.js"></script>
+    <script type="text/javascript" src="assets/leaflet/plugins/leaflet.markercluster/leaflet.markercluster.js"></script>
 
     <script type="text/javascript">
       var map, newUser, users, mapquest, firstLoad;
 
       firstLoad = true;
 
-      users = new L.FeatureGroup();
+      //users = new L.FeatureGroup();
+      users = new L.MarkerClusterGroup({spiderfyOnMaxZoom: true, showCoverageOnHover: false, zoomToBoundsOnClick: true});
       newUser = new L.LayerGroup();
 
       mapquest = new L.TileLayer("http://{s}.mqcdn.com/tiles/1.0.0/osm/{z}/{x}/{y}.png", {
         maxZoom: 18,
         subdomains: ["otile1", "otile2", "otile3", "otile4"],
-        attribution: 'Tiles Courtesy of <a href="http://www.mapquest.com/" target="_blank">MapQuest</a>. Map data (c) <a href="http://www.openstreetmap.org/" target="_blank">OpenStreetMap</a> contributors, CC-BY-SA.'
+        attribution: 'Basemap tiles courtesy of <a href="http://www.mapquest.com/" target="_blank">MapQuest</a> <img src="http://developer.mapquest.com/content/osm/mq_logo.png">. Map data (c) <a href="http://www.openstreetmap.org/" target="_blank">OpenStreetMap</a> contributors, CC-BY-SA.'
       });
 
       map = new L.Map('map', {
@@ -259,6 +251,20 @@
         layers: [mapquest, users, newUser]
       });
 
+      // GeoLocation Control
+      function geoLocate() {
+        map.locate({setView: true, maxZoom: 17});
+      }
+      var geolocControl = new L.control({
+        position: 'topright'
+      });
+      geolocControl.onAdd = function (map) {
+        var div = L.DomUtil.create('div', 'leaflet-control-zoom leaflet-control');
+        div.innerHTML = '<a class="leaflet-control-geoloc" href="#" onclick="geoLocate(); return false;" title="My location"></a>';
+        return div;
+      };
+      
+      map.addControl(geolocControl);
       map.addControl(new L.Control.Scale());
 
       //map.locate({setView: true, maxZoom: 3});
@@ -279,13 +285,13 @@
 
       function initRegistration() {
         map.addEventListener('click', onMapClick);
-        document.body.style.cursor = 'crosshair';
+        $('#map').css('cursor', 'crosshair');
         return false;
       }
 
       function cancelRegistration() {
         newUser.clearLayers();
-        document.body.style.cursor = 'default';
+        $('#map').css('cursor', '');
         map.removeEventListener('click', onMapClick);
       }
 
@@ -307,7 +313,9 @@
             else {
               var city = "";
             }
-            var marker = new L.Marker(location);
+            var marker = new L.Marker(location, {
+              title: name
+            });
             marker.bindPopup("<div style='text-align: center; margin-left: auto; margin-right: auto;'>"+ title + city +"</div>", {maxWidth: '400'});
             users.addLayer(marker);
           }
@@ -320,6 +328,8 @@
       }
 
       function insertUser() {
+        $("#loading-mask").show();
+        $("#loading").show();
         var name = $("#name").val();
         var email = $("#email").val();
         var website = $("#website").val();
@@ -343,6 +353,8 @@
             cancelRegistration();
             users.clearLayers();
             getUsers();
+            $("#loading-mask").hide();
+            $("#loading").hide();
             $('#insertSuccessModal').modal('show');
           }
         });
