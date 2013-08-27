@@ -231,7 +231,7 @@
     <script type="text/javascript" src="assets/leaflet/plugins/leaflet.markercluster/leaflet.markercluster.js"></script>
 
     <script type="text/javascript">
-      var map, newUser, users, mapquest, firstLoad;
+      var map, newUser, users, mapquest, firstLoad, marker;
 
       firstLoad = true;
 
@@ -264,15 +264,16 @@
         return div;
       };
       
+
       map.addControl(geolocControl);
       map.addControl(new L.Control.Scale());
-
       //map.locate({setView: true, maxZoom: 3});
 
       $(document).ready(function() {
         $.ajaxSetup({cache:false});
         $('#map').css('height', ($(window).height() - 40));
         getUsers();
+        
       });
 
       $(window).resize(function () {
@@ -285,6 +286,7 @@
 
       function initRegistration() {
         map.addEventListener('click', onMapClick);
+        
         $('#map').css('cursor', 'crosshair');
         return false;
       }
@@ -392,10 +394,18 @@
         });
         return false;
       }
+      function markerDrag(e) {
+          // Update the lat/long values of the form after a marker dragend event; reopen the popup window
+          marker.openPopup();
+          document.getElementById("lat").value = e.target._latlng.lat.toFixed(6);
+          document.getElementById("lng").value = e.target._latlng.lng.toFixed(6);
+      }
 
       function onMapClick(e) {
         var markerLocation = new L.LatLng(e.latlng.lat, e.latlng.lng);
-        var marker = new L.Marker(markerLocation);
+        marker = new L.Marker(markerLocation, {draggable:true});
+
+        marker.on('dragend', markerDrag);
         newUser.clearLayers();
         newUser.addLayer(marker);
         var form =  '<form id="inputform" enctype="multipart/form-data" class="well">'+
@@ -415,6 +425,7 @@
               '</div>'+
               '</form>';
         marker.bindPopup(form).openPopup();
+
       }
     </script>
 
